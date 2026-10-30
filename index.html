@@ -156,6 +156,30 @@ textarea{min-height:240px;resize:vertical;font-variant-numeric:tabular-nums}
 .rulegrid .h{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
 .preview{background:var(--chip);border-radius:8px;padding:10px 12px;font-size:14px}
 .err{color:var(--bad);font-size:13.5px}
+.icontab{display:inline-flex;align-items:center;padding:10px 14px!important}
+.icontab svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.setcard{display:flex;flex-direction:column;gap:16px;max-width:860px}
+.setrow{display:flex;gap:16px;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:14px}
+.setrow.col{flex-direction:column;align-items:stretch;gap:10px}
+.settx{display:flex;flex-direction:column;gap:3px;min-width:0}.settx .muted{font-size:13.5px}
+.switch{position:relative;flex:none;width:52px;height:30px;cursor:pointer}
+.switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.switch span{position:absolute;inset:0;border-radius:999px;background:var(--line);transition:background .2s}
+.switch span::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .2s}
+.switch input:checked+span{background:var(--accent)}
+.switch input:checked+span::after{transform:translateX(22px)}
+.switch input:focus-visible+span{outline:2px solid var(--shuttle);outline-offset:2px}
+.setmsg{margin:0;color:var(--done-ink);font-weight:600;min-height:1em}
+
+.lockcard{max-width:460px;margin:24px auto;display:flex;flex-direction:column;gap:10px;align-items:flex-start;padding:24px}
+.lockicon{width:44px;height:44px;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.lockform{display:flex;flex-direction:column;gap:12px;width:100%}
+.lockform input{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:9px 11px;width:100%}
+.lockform.wide .row label.f{flex:1;min-width:180px}
+.tabrow .lockbtn{border:0;cursor:pointer;margin-left:8px}
+.tabrow{column-gap:0}
+.tabrow a.tvlink{margin-left:auto}
+
 .bkcards{margin-bottom:10px}
 .bkcards .fmt{gap:8px}
 .bkicon{width:36px;height:36px;color:var(--accent);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -377,6 +401,7 @@ dialog::backdrop{background:rgba(40,20,10,.35)}
       <button role="tab" data-tab="knockout">Knockout</button>
       <button role="tab" data-tab="stats">Stats</button>
       <button role="tab" data-tab="setup">Setup</button>
+      <button role="tab" data-tab="settings" class="icontab" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
     </nav><a class="tvlink" href="https://claude.ai/artifact/1hUM975N9r5hjXxuCG2gnP#display" target="_blank" rel="noopener">Open player display ↗</a></div>
   </div>
 </header>
@@ -399,7 +424,7 @@ const cmp=(a,b)=>{for(let i=0;i<a.length;i++){if(a[i]!==b[i])return a[i]-b[i]}re
 function load(){try{const t=localStorage.getItem(KEY);if(t)return JSON.parse(t)}catch(e){}return null}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function getTab(){try{return localStorage.getItem(TABKEY)}catch(e){return null}}
-function setTab(t){tab=t;try{localStorage.setItem(TABKEY,t)}catch(e){}render()}
+function setTab(t){if(t!==tab)setUnlocked(false);tab=t;try{localStorage.setItem(TABKEY,t)}catch(e){}render()}
 
 /* ---------- Rules & results ---------- */
 function rulesFor(m){return m.stage==='group'?S.rules.group:S.rules.ko}
@@ -557,9 +582,9 @@ function render(){
   document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
   {const tl=$('.tvlink'),framed=(()=>{try{return window.self!==window.top}catch(e){return true}})(),base=framed?'https://claude.ai/artifact/1hUM975N9r5hjXxuCG2gnP':location.href.split('#')[0];
    const h=tab==='groups'?'#display-groups':tab==='knockout'?'#display-ko':'#display';tl.href=base+h;
-   tl.textContent=tab==='groups'?'Open group display ↗':tab==='knockout'?'Open knockout display ↗':'Open player display ↗'}
-  main.innerHTML=tab==='groups'?viewGroups():tab==='knockout'?viewKO():tab==='stats'?viewStats():viewSetup();
-  if(tab==='setup')wireSetup();else wirePlanner();
+   tl.textContent=tab==='groups'?'Open group display ↗':'Open knockout display ↗';tl.hidden=!(tab==='groups'||tab==='knockout')}
+  main.innerHTML=tab==='groups'?viewGroups():tab==='knockout'?viewKO():tab==='stats'?viewStats():isLocked()?viewLock():tab==='settings'?viewSettings():viewSetup();
+  if(tab==='setup'||tab==='settings'){isLocked()?wireLock():tab==='settings'?wireSettings():wireSetup()}else wirePlanner();
 }
 function wdRows(gi){return S.groups[gi].teamIds.filter(id=>team(id)?.withdrawn).map(id=>`<tr class="wd"><td class="rank">–</td><td class="l team">${esc(tname(id))}<span class="note">withdrawn</span></td><td colspan="5">matches void</td></tr>`).join('')}
 const openManage=new Set();
@@ -580,7 +605,7 @@ function scoreText(m,r){if(r.wo)return'W/O';if(r.status==='done'||r.status==='li
 function tierOf(rank){const d=bracketDefs().find(d=>rank>=d.from&&rank<=d.to);return d?d.key:''}
 function viewGroups(){
   const p=groupProgress();const upcoming=allGroupMatches().filter(m=>result(m).status!=='done'&&!onCourt(m)).slice(0,4);
-  let h=`<div class="row" style="justify-content:flex-end"><span class="muted" id="pdfMsg"></span><select id="pdfGroup" class="pdfsel" aria-label="Which groups"><option value="all">All groups</option>${S.groups.map((g,i)=>`<option value="${i}">Group ${esc(g.name)}</option>`).join('')}</select><button class="btn" type="button" data-act="pdf">Download score sheets (PDF)</button></div>`;
+  let h=`<div class="row" style="justify-content:flex-end"><span class="muted" id="pdfMsg"></span><select id="pdfGroup" class="pdfsel" aria-label="Which groups"><option value="all">All groups</option>${S.groups.map((g,i)=>`<option value="${i}">Group ${esc(g.name)}</option>`).join('')}<option value="blank">Blank sheets (fill in by hand)</option></select><button class="btn" type="button" data-act="pdf">Download score sheets (PDF)</button></div>`;
   h+=courtStrip('group');
   if(S.example)h+=`<div class="banner"><span>This is an example tournament so you can see how scoring works. Set up your own in the Setup tab.</span><button class="btn" data-act="goSetup">Set up my tournament</button></div>`;
   if(upcoming.length)h+=`<section><div class="row spread" style="margin-bottom:10px"><h3>Up next</h3><span class="muted">${p.done} of ${p.total} group matches played</span></div><div class="next">${upcoming.map(m=>`<button data-m="${m.id}"><small>Match ${m.order} · Group ${esc(S.groups[m.group].name)}</small><span>${esc(tname(m.a))} ${rest(m.a)}</span><span class="muted">vs ${esc(tname(m.b))} ${rest(m.b)}</span></button>`).join('')}</div></section>`;
@@ -610,6 +635,7 @@ function viewKO(){
     <p class="muted" style="margin:14px 0 0;font-size:13.5px">Semi-finals are crossed over: A1 plays B2 and B1 plays A2. With more groups, winners are seeded first and same-group pairs are kept apart in the first round.</p></section>`;
     return h;
   }
+  h+=`<div class="row" style="justify-content:flex-end"><span class="muted" id="resMsg"></span><button class="btn" type="button" data-act="resPdf">Download final results (PDF)</button></div>`;
   h+=courtStrip('ko');
   if(koSnap()!==S.ko.snap)h+=`<div class="banner"><span>Group results changed after the draw was made, so the qualifiers are now different.</span><button class="btn" data-act="rebuild">Rebuild the draw</button></div>`;
   S.ko.brackets.forEach(b=>{
@@ -713,14 +739,20 @@ function prettyJSON(o){const keys=Object.keys(o);
     if(k==='ko'&&v)return'{\n'+Object.entries(v).map(([kk,x])=>Array.isArray(x)?'  '+JSON.stringify(kk)+': [\n'+x.map(y=>'   '+JSON.stringify(y)).join(',\n')+'\n  ]':'  '+JSON.stringify(kk)+': '+JSON.stringify(x)).join(',\n')+'\n }';
     return JSON.stringify(v)};
   return'{\n'+keys.map(k=>' '+JSON.stringify(k)+': '+val(k,o[k])).join(',\n')+'\n}'}
+async function downloadBackup(){const msg=$('#copyMsg'),txt=backupText();const d=new Date(),p2=n=>String(n).padStart(2,'0');
+  const ts=`${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}_${p2(d.getHours())}${p2(d.getMinutes())}`;
+  const nm=(S.name||'tournament').replace(/[\\/:*?"<>|]+/g,'').trim().replace(/\s+/g,'-')||'tournament';const fname=`backup_${bkMode==='setup'?'setup_':''}${nm}_${ts}.txt`;
+  let dl=null;try{if(window.claude&&claude.use)dl=await claude.use('downloads')}catch(e){}
+  if(dl){try{await dl.save({filename:fname,data:txt});msg.textContent='Saved '+fname}catch(e){msg.textContent=e&&e.code==='declined'?'Download cancelled':'The download did not work here. Use Copy backup instead.'}return}
+  try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=fname;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);msg.textContent='Downloaded '+fname}catch(e){msg.textContent='The download did not work here. Use Copy backup instead.'}}
 function backupText(){return prettyJSON(bkMode==='setup'?setupOnly(S):S)}
 function viewBackup(){return`<section class="card"><h2>Backup</h2><p class="muted" style="margin:6px 0 12px">Results are saved in this browser on this device. Copy the backup text and keep it somewhere safe, or paste one here to restore it.</p>
   <div class="form"><div class="f"><span style="font-weight:600;font-size:13.5px">Make a backup</span>
   <div class="fmtpick bkcards" role="radiogroup" aria-label="Backup contents">
     <label class="fmt"><input type="radio" name="bk" value="full" ${bkMode==='full'?'checked':''}><span class="tick" aria-hidden="true"></span><svg class="bkicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 2.5 7.2 12 12l9.5-4.8L12 2.5z"/><path d="M2.5 12 12 16.8 21.5 12"/><path d="M2.5 16.8 12 21.5l9.5-4.7"/></svg><span class="fmt-t">Everything</span><span class="muted">The whole tournament with all results. Use it to keep a safe copy or move to another computer.</span><span class="chips"><i>Pairs &amp; groups</i><i>Scores</i><i>Knockout</i><i>Court times</i></span></label>
     <label class="fmt"><input type="radio" name="bk" value="setup" ${bkMode==='setup'?'checked':''}><span class="tick" aria-hidden="true"></span><svg class="bkicon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17.5" rx="2"/><rect x="9" y="2.5" width="6" height="3.5" rx="1"/><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg><span class="fmt-t">Setup only</span><span class="muted">A clean tournament, ready to play. Use it to hand the setup to a colleague.</span><span class="chips"><i>Pairs &amp; groups</i><i>Rules</i><i>Fixtures</i><i class="no">No scores</i></span></label></div>
-  <textarea id="bOut" readonly spellcheck="false" style="min-height:260px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow-x:auto">${esc(backupText())}</textarea><span><button class="btn" data-act="copy" type="button">Copy backup</button> <span id="copyMsg" class="muted"></span></span></div>
-  <label class="f">Restore from backup<textarea id="bIn" spellcheck="false" style="min-height:260px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow-x:auto" placeholder="Paste backup text here"></textarea><span><button class="btn" data-act="restore" type="button">Restore</button> <span id="restMsg" class="err"></span></span></label></div></section>`}
+  <textarea id="bOut" readonly spellcheck="false" style="min-height:260px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow-x:auto">${esc(backupText())}</textarea><span class="row"><button class="btn primary" data-act="dlBackup" type="button">Download backup (.txt)</button><button class="btn" data-act="copy" type="button">Copy backup</button><span id="copyMsg" class="muted"></span></span></div>
+  <label class="f">Restore from backup<textarea id="bIn" spellcheck="false" style="min-height:260px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow-x:auto" placeholder="Paste backup text here"></textarea><span class="row"><button class="btn primary" data-act="openFile" type="button">Restore from file…</button><button class="btn" data-act="restore" type="button">Restore pasted text</button><input type="file" id="bFile" accept=".txt,.json,text/plain" hidden><span id="restMsg" class="err"></span></span></label></div></section>`}
 function readRules(){
   const rd=p=>({pts:parseInt($('#'+p+'Pts').value,10),cap:parseInt($('#'+p+'Cap').value,10),bo:parseInt($('#'+p+'Bo').value,10)===3?3:1});
   const g=rd('rg'),k=rd('rk');
@@ -738,7 +770,7 @@ function koSummary(format,sizes,advance,tierCount){
   return'Brackets: '+parts.join(', ')+' pairs';
 }
 function wireSetup(){
-  if(setupStep===3){document.querySelectorAll('input[name=bk]').forEach(r=>r.addEventListener('change',()=>{bkMode=r.value;$('#bOut').value=backupText();$('#copyMsg').textContent=''}));return}
+  if(setupStep===3){const bf=$('#bFile');if(bf)bf.addEventListener('change',()=>{const f=bf.files&&bf.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{$('#bIn').value=String(rd.result||'');$('#restMsg').textContent='';bf.value='';document.querySelector('[data-act=restore]').click()};rd.onerror=()=>{$('#restMsg').textContent='That file could not be read.'};rd.readAsText(f)});document.querySelectorAll('input[name=bk]').forEach(r=>r.addEventListener('change',()=>{bkMode=r.value;$('#bOut').value=backupText();$('#copyMsg').textContent=''}));return}
   if(setupStep===1){
     const upd=()=>{const fmt=document.querySelector('input[name=fmt]:checked').value,G=+$('#sGroups').value;
       $('#advWrap').hidden=fmt!=='semis';$('#tierWrap').hidden=fmt!=='tiers';
@@ -809,6 +841,11 @@ main.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');if(!a)return;const act=a.dataset.act;
   if(act==='goSetup'){setupStep=1;setTab('setup')}
   if(act==='goKO')setTab('knockout');
+  if(act==='resPdf'){downloadResults();return}
+  if(act==='removePw'){confirmBox('Remove the admin password? Setup and Settings will open for anyone using this browser.','Remove password',()=>{memAdmin=null;try{localStorage.removeItem(ADMKEY)}catch(e){}setMsg='Password removed. Protection is off.';render()});return}
+  if(act==='lockNow'){setUnlocked(false);render();return}
+  if(act==='dlBackup'){downloadBackup();return}
+  if(act==='openFile'){const bf=$('#bFile');if(bf)bf.click();return}
   if(act==='clearSetup'){confirmBox('Clear the setup form? The name, pairs and choices go back to the defaults. Your current tournament and its results stay as they are until you click Create tournament.','Clear setup',()=>{
     draft={name:'',format:'semis',numGroups:2,advance:2,tierCount:3,third:{},rules:{group:{pts:21,cap:30,bo:1},ko:{pts:21,cap:30,bo:3}},groups:['','']};setupStep=1;render()});return}
   if(act==='startPick'){const sel=$('#pick'+a.dataset.c);const m=sel&&S.matches[sel.value];if(!m)return;const err=startOnCourt(m,+a.dataset.c);if(err){confirmBox(err,'OK',()=>{});return}render();return}
@@ -908,7 +945,7 @@ function courtStrip(stage){
 function startOnCourt(m,k){if(courtMatch(k)&&courtMatch(k)!==m)return`Court ${k} already has ${matchLabel(courtMatch(k))}. Enter its result or take it off court first.`;
   const busy=busyTeams(m);const cl=[sideTeam(m,0),sideTeam(m,1)].find(t=>busy.has(t));if(cl)return`${tname(cl)} is already playing on another court.`;
   if(!(m.court===k&&m.started))m.started=Date.now();m.court=k;save();return''}
-setInterval(()=>{if(!isTV()&&!document.activeElement?.closest?.('.planner')&&!$('#dlg').open&&!$('#cdlg').open&&!document.querySelector('.pick[open]')&&!document.querySelector('details.wdbox[open]')&&tab!=='setup')render()},60000);
+setInterval(()=>{if(!isTV()&&!document.activeElement?.closest?.('.planner')&&!$('#dlg').open&&!$('#cdlg').open&&!document.querySelector('.pick[open]')&&!document.querySelector('details.wdbox[open]')&&tab!=='setup'&&tab!=='settings')render()},60000);
 setInterval(()=>document.querySelectorAll('[data-since]').forEach(el=>{const t=+el.dataset.since;if(t)el.textContent=mins(t)+' min'}),30000);
 /* ---------- Match timing ---------- */
 const durMin=m=>m.duration?Math.max(1,Math.round(m.duration/60000)):0;
@@ -964,33 +1001,83 @@ function viewStats(){
   ${rows.map(r=>{const pd=r.PF-r.PA;return`<tr class="${r.tm.withdrawn?'wd':''}"><td class="l team">${esc(r.tm.name)}${r.tm.withdrawn?'<span class="note">withdrawn</span>':''}</td><td class="l">${esc(gOf(r.tm.id)?.name||'')}</td><td>${r.P}</td><td><b>${r.W}</b></td><td>${r.L}</td><td>${r.GW}–${r.GL}</td><td>${r.PF}–${r.PA}</td><td>${pd>0?'+':''}${pd}</td><td>${r.dn?Math.round(r.dur/r.dn/60000)+' min':'–'}</td></tr>`}).join('')}
   </tbody></table></div></section>`;
 }
+/* ---------- Admin lock for Setup ---------- */
+const ADMKEY='shuttle-scorer-admin',UNLKEY='shuttle-scorer-unlocked';let memUnlocked=false,memAdmin=null;
+function getAdmin(){try{const t=localStorage.getItem(ADMKEY);if(t)return JSON.parse(t)}catch(e){}return memAdmin}
+function setAdmin(o){memAdmin=o;try{localStorage.setItem(ADMKEY,JSON.stringify(o))}catch(e){}}
+let unlockedTab=null;
+function adminOk(){return memUnlocked&&unlockedTab===tab}
+function setUnlocked(v){memUnlocked=v;unlockedTab=v?tab:null;try{sessionStorage.removeItem(UNLKEY)}catch(e){}}
+function newSalt(){try{return[...crypto.getRandomValues(new Uint8Array(12))].map(b=>b.toString(16).padStart(2,'0')).join('')}catch(e){return Math.random().toString(16).slice(2)+Date.now().toString(16)}}
+async function hashPw(pw,salt){const data=new TextEncoder().encode(salt+':'+pw);
+  try{const h=await crypto.subtle.digest('SHA-256',data);return[...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+  catch(e){let h=2166136261;for(const b of data){h^=b;h=Math.imul(h,16777619)}return'f'+(h>>>0).toString(16)}}
+async function checkPw(pw){const a=getAdmin();return!!a&&(await hashPw(pw,a.salt))===a.hash}
+const LOCK_SVG='<svg class="lockicon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.6" r="1.5"/></svg>';
+function viewLock(){const has=!!getAdmin();
+  return`<section class="card lockcard">${LOCK_SVG}<h2>${has?'Admin access':'Set an admin password'}</h2>
+  <p class="muted">${has?'Setup and Settings are for organisers only. Enter the admin password to continue.':'Setup is for organisers only. Choose a password for this browser. You will need it to open Setup next time.'}</p>
+  <form id="lockForm" class="lockform"><label class="f">Password<input id="pw1" type="password" autocomplete="${has?'current-password':'new-password'}"></label>
+  ${has?'':'<label class="f">Repeat password<input id="pw2" type="password" autocomplete="new-password"></label>'}
+  <div class="err" id="pwErr"></div><button class="btn primary" type="submit">${has?'Unlock Setup':'Set password and continue'}</button></form>
+  ${has?'<p class="muted" style="font-size:12.5px;margin:4px 0 0">Forgot the password? It can\'t be recovered. Clearing this website\'s data in the browser settings removes it, but that also deletes the saved tournament.</p>':''}</section>`}
+function wireLock(){const f=$('#lockForm');if(!f)return;setTimeout(()=>{const i=$('#pw1');i&&i.focus()},30);
+  f.addEventListener('submit',async e=>{e.preventDefault();const err=$('#pwErr'),p1=$('#pw1').value;err.textContent='';
+    if(getAdmin()){if(await checkPw(p1)){setUnlocked(true);render()}else{err.textContent='That password is not correct.';$('#pw1').select()}return}
+    const p2=$('#pw2').value;if(p1.length<4){err.textContent='Use at least 4 characters.';return}if(p1!==p2){err.textContent='The two passwords do not match.';return}
+    const salt=newSalt();setAdmin({salt,hash:await hashPw(p1,salt)});setUnlocked(true);render()})}
+const protectOn=()=>{const a=getAdmin();return!!(a&&a.hash&&a.protect!==false)};
+const isLocked=()=>protectOn()&&!adminOk();
+let setMsg='';
+function viewSettings(){const a=getAdmin(),has=!!(a&&a.hash),on=protectOn();const msg=setMsg;setMsg='';
+  return`<section class="card setcard"><h2>Settings</h2>
+  <div class="setrow"><div class="settx"><b>Password-protect Setup and Settings</b><span class="muted">When on, the admin password is needed to open Setup and Settings. Groups, Knockout, Stats and the player display stay open for everyone.</span></div>
+  <label class="switch"><input type="checkbox" id="protTgl" ${on?'checked':''} aria-label="Password-protect Setup and Settings"><span aria-hidden="true"></span></label></div>
+  ${has?`<form id="cpForm" class="lockform wide setrow col"><b>Change admin password</b><div class="row" style="align-items:flex-end"><label class="f">Current password<input id="cp0" type="password" autocomplete="current-password"></label><label class="f">New password<input id="cp1" type="password" autocomplete="new-password"></label><label class="f">Repeat new password<input id="cp2" type="password" autocomplete="new-password"></label></div>
+    <div class="err" id="cpErr"></div><div class="row"><button class="btn primary" type="submit">Change password</button><button class="btn danger" type="button" data-act="removePw">Remove password</button></div></form>`
+  :`<form id="npForm" class="lockform wide setrow col"><b>Set admin password</b><span class="muted" style="font-size:13.5px">Setting a password turns protection on.</span><div class="row" style="align-items:flex-end"><label class="f">New password<input id="np1" type="password" autocomplete="new-password"></label><label class="f">Repeat password<input id="np2" type="password" autocomplete="new-password"></label></div>
+    <div class="err" id="npErr"></div><div class="row"><button class="btn primary" type="submit">Set password</button></div></form>`}
+  <p class="setmsg" id="setMsg">${esc(msg)}</p>
+  <p class="muted" style="font-size:12.5px;margin:0">The password is kept in this browser only and is not part of backups. It can't be recovered: clearing this website's data in the browser removes it, but also deletes the saved tournament.</p></section>`}
+function wireSettings(){const a=getAdmin();
+  $('#protTgl').addEventListener('change',e=>{const g=getAdmin();
+    if(e.target.checked){if(!(g&&g.hash)){e.target.checked=false;$('#setMsg').textContent='Set a password below first.';$('#np1')?.focus();return}
+      setAdmin({...g,protect:true});setUnlocked(true);setMsg='Protection is on.';render()}
+    else{setAdmin({...g,protect:false});setMsg='Protection is off. Anyone can open Setup and Settings.';render()}});
+  const np=$('#npForm');if(np)np.addEventListener('submit',async e=>{e.preventDefault();const err=$('#npErr'),p1=$('#np1').value,p2=$('#np2').value;err.textContent='';
+    if(p1.length<4){err.textContent='Use at least 4 characters.';return}if(p1!==p2){err.textContent='The two passwords do not match.';return}
+    const salt=newSalt();setAdmin({salt,hash:await hashPw(p1,salt),protect:true});setUnlocked(true);setMsg='Password set. Protection is on.';render()});
+  const cp=$('#cpForm');if(cp)cp.addEventListener('submit',async e=>{e.preventDefault();const err=$('#cpErr');err.textContent='';
+    if(!(await checkPw($('#cp0').value))){err.textContent='The current password is not correct.';return}
+    const p1=$('#cp1').value,p2=$('#cp2').value;if(p1.length<4){err.textContent='Use at least 4 characters for the new password.';return}if(p1!==p2){err.textContent='The two new passwords do not match.';return}
+    const g=getAdmin(),salt=newSalt();setAdmin({salt,hash:await hashPw(p1,salt),protect:g?g.protect:true});setMsg='Password changed.';render()})}
 /* ---------- Score sheets PDF ---------- */
 function fitText(doc,t,maxW,fs,bold){doc.setFont('helvetica',bold?'bold':'normal');let s=fs;doc.setFontSize(s);
   while(doc.getTextWidth(t)>maxW&&s>11){s-=0.5;doc.setFontSize(s)}
   if(doc.getTextWidth(t)>maxW){while(t.length>1&&doc.getTextWidth(t+'...')>maxW)t=t.slice(0,-1);t+='...'}return t}
 function buildPDF(gsel){
   const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  const bo=S.rules.group.bo,cols=bo===1?['Score']:['Set 1','Set 2','Set 3'];
-  const ms=allGroupMatches().filter(m=>gsel==='all'||m.group===+gsel);
+  const blank=gsel==='blank',bo=blank?3:S.rules.group.bo,cols=bo===1?['Score']:['Set 1','Set 2','Set 3'];
+  const ms=blank?Array.from({length:10},()=>({blank:true})):allGroupMatches().filter(m=>gsel==='all'||m.group===+gsel);
   const W=297,M=10,GAPX=12,colW=(W-2*M-GAPX)/2,setW=bo===1?40:22,nameW=colW-setW*cols.length;
   const rowH=9.6,metaH=4.4,top=20,avail=200-top,slipH=metaH+3*rowH,gapY=(avail-5*slipH)/4;
   const per=10,n=Math.max(1,Math.ceil(ms.length/per));
   for(let p=0;p<n;p++){
     if(p)doc.addPage();
     doc.setTextColor(0);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Indo-Swiss Sports Club',M,14);
-    doc.setFont('helvetica','normal');doc.text(S.name,W/2,14,{align:'center'});doc.text(`Page ${p+1} of ${n}`,W-M,14,{align:'right'});
+    doc.setFont('helvetica','normal');doc.text(S.name,W/2,14,{align:'center'});doc.text(blank?'Spare score sheets':`Page ${p+1} of ${n}`,W-M,14,{align:'right'});
     doc.setLineWidth(.4);doc.setDrawColor(0);doc.line(M,16,W-M,16);
     for(let i=0;i<per;i++){const m=ms[p*per+i];if(!m)break;
       const x=M+(i%2)*(colW+GAPX),y=top+Math.floor(i/2)*(slipH+gapY),ty=y+metaH;
-      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text(`Match ${m.order} - Round ${m.round}`,x,y+3);doc.setTextColor(0);
+      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(90);doc.text(m.blank?'Match ________    Round ________    Court ________':`Match ${m.order} - Round ${m.round}`,x,y+3);doc.setTextColor(0);
       doc.setFillColor(217,217,217);doc.rect(x,ty,colW,rowH,'F');
       doc.setLineWidth(.35);doc.rect(x,ty,colW,3*rowH,'S');
       doc.line(x,ty+rowH,x+colW,ty+rowH);doc.line(x,ty+2*rowH,x+colW,ty+2*rowH);
       for(let k=0;k<cols.length;k++){const cx=x+nameW+k*setW;doc.line(cx,ty,cx,ty+3*rowH)}
       const mid=r=>ty+r*rowH+rowH/2;
-      doc.text(fitText(doc,'GROUP '+String(S.groups[m.group].name).toUpperCase(),nameW-5,18,true),x+2.5,mid(0),{baseline:'middle'});
+      doc.text(fitText(doc,m.blank?'GROUP':'GROUP '+String(S.groups[m.group].name).toUpperCase(),nameW-5,18,true),x+2.5,mid(0),{baseline:'middle'});
       cols.forEach((c,k)=>doc.text(fitText(doc,c,setW-4,18,true),x+nameW+k*setW+2,mid(0),{baseline:'middle'}));
-      [m.a,m.b].forEach((id,r)=>doc.text(fitText(doc,tname(id),nameW-5,18,false),x+2.5,mid(r+1),{baseline:'middle'}));
+      if(!m.blank)[m.a,m.b].forEach((id,r)=>doc.text(fitText(doc,tname(id),nameW-5,18,false),x+2.5,mid(r+1),{baseline:'middle'}));
     }
     const cnt=Math.min(per,ms.length-p*per),rows=Math.ceil(cnt/2);
     if(cnt>0){doc.setDrawColor(150);doc.setLineWidth(.25);doc.setLineDashPattern([2.5,1.8],0);
@@ -1004,7 +1091,7 @@ async function downloadSheets(){
   const msg=$('#pdfMsg'),gsel=$('#pdfGroup').value;
   if(!window.jspdf){msg.textContent='The PDF maker could not load. Check the internet connection and reload.';return}
   const{doc,count,pages}=buildPDF(gsel);
-  const gname=gsel==='all'?'':` Group ${S.groups[+gsel].name}`;
+  const gname=gsel==='all'?'':gsel==='blank'?' blank':` Group ${S.groups[+gsel].name}`;
   const fname=`${S.name}${gname} score sheets.pdf`.replace(/[\\/:*?"<>|]+/g,'-');
   msg.textContent='Preparing PDF...';
   let dl=null;try{if(window.claude&&claude.use)dl=await claude.use('downloads')}catch(e){}
@@ -1012,6 +1099,68 @@ async function downloadSheets(){
     catch(e){msg.textContent=e&&e.code==='declined'?'Download cancelled':'The download did not work here. Try the HTML file in your browser.'}return}
   try{doc.save(fname);msg.textContent=`Downloaded ${count} sheets on ${pages} page${pages>1?'s':''}`}catch(e){msg.textContent='The download did not work here.'}
 }
+/* ---------- Final results PDF ---------- */
+function setsFor(m,i){if(!m)return null;const r=result(m);if(r.status!=='done')return null;if(r.wo)return'wo';return m.games.map(g=>[g[i],g[1-i]])}
+function placings(b){const fm=S.matches[b.rounds[b.rounds.length-1][0]],rows=[];
+  const w=winnerTeam(fm),A=sideTeam(fm,0),B=sideTeam(fm,1),wi=w?(w===A?0:1):-1;
+  rows.push({place:'Winner',medal:'gold',team:w||null,sets:w?setsFor(fm,wi):null,from:'Final'});
+  rows.push({place:'Runner-up',medal:'silver',team:w?(wi===0?B:A):null,sets:w?setsFor(fm,1-wi):null,from:'Final'});
+  if(b.third){const tm=S.matches[b.third],t=winnerTeam(tm),C=sideTeam(tm,0),D=sideTeam(tm,1),ti=t?(t===C?0:1):-1;
+    rows.push({place:'3rd place',medal:'bronze',team:t||null,sets:t?setsFor(tm,ti):null,from:'3rd place match'});
+    rows.push({place:'',medal:'',team:t?(ti===0?D:C):null,sets:t?setsFor(tm,1-ti):null,from:'3rd place match'})}
+  return rows}
+function buildResultsPDF(){
+  const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,M=16,COL={gold:[209,169,58],silver:[154,165,175],bronze:[194,130,90],main:[207,93,86]};
+  const now=new Date(),p2=n=>String(n).padStart(2,'0'),stamp=`${p2(now.getDate())}.${p2(now.getMonth()+1)}.${now.getFullYear()} ${p2(now.getHours())}:${p2(now.getMinutes())}`;
+  const bo=S.rules.ko.bo,setCols=bo===1?['SCORE']:['SET 1','SET 2','SET 3'],setW=bo===1?24:17;
+  const R=W-M,setX=k=>R-(setCols.length-k)*setW,cPlace=M,cPair=M+36,pairMax=setX(0)-cPair-4,rowH=8.5;
+  try{doc.addImage($('header .logo').src,'PNG',M,12,24,24)}catch(e){}
+  doc.setTextColor(40,25,18);doc.setFont('helvetica','bold');doc.setFontSize(17);doc.text('Indo-Swiss Sports Club',M+30,21);
+  doc.setFont('helvetica','normal');doc.setFontSize(13);doc.text(S.name,M+30,28.5);
+  doc.setFontSize(10);doc.setTextColor(120);doc.text('Final results',M+30,34.5);
+  doc.setDrawColor(40,25,18);doc.setLineWidth(.5);doc.line(M,41,W-M,41);
+  let y=48;
+  S.ko.brackets.forEach(b=>{const rows=placings(b);const blocks=[];rows.forEach(r=>{const l=blocks[blocks.length-1];if(l&&l.from===r.from)l.rows.push(r);else blocks.push({from:r.from,rows:[r]})});
+    const need=14+blocks.reduce((s,bl,bi)=>s+(bi?1.5:3.6)+bl.rows.length*rowH+3.5,0)+4;
+    if(y+need>282){doc.addPage();y=20}
+    const c=COL[b.key]||COL.main;
+    doc.setFillColor(c[0],c[1],c[2]);doc.rect(M,y,4,10,'F');
+    doc.setFillColor(Math.round(c[0]+(255-c[0])*.82),Math.round(c[1]+(255-c[1])*.82),Math.round(c[2]+(255-c[2])*.82));doc.rect(M+4,y,W-2*M-4,10,'F');
+    doc.setTextColor(40,25,18);doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text(b.key==='main'?'Knockout':`${b.name} bracket`,M+9,y+7.1);
+    y+=14;
+    blocks.forEach((bl,bi)=>{
+      if(bi===0){doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(130);setCols.forEach((s,k)=>doc.text(s,setX(k)+setW/2,y+2.5,{align:'center'}));y+=3.6}else y+=1.5;const top=y,h=bl.rows.length*rowH;
+      doc.setDrawColor(205);doc.setLineWidth(.3);doc.roundedRect(cPair-3,top,R-cPair+3,h,1.5,1.5,'S');
+      if(bl.rows.length>1){doc.setLineDashPattern([1,1],0);doc.line(cPair-3,top+rowH,R,top+rowH);doc.setLineDashPattern([],0)}
+      for(let k=0;k<setCols.length;k++){doc.setDrawColor(230);doc.line(setX(k),top+1.2,setX(k),top+h-1.2)}
+      bl.rows.forEach((r,ri)=>{const my=top+ri*rowH+rowH/2+1.6;
+        if(r.medal){const mc=COL[r.medal];doc.setFillColor(mc[0],mc[1],mc[2]);doc.circle(cPlace+2.2,my-1.4,2.2,'F')}
+        if(r.place){doc.setTextColor(40,25,18);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text(r.place,cPlace+(r.medal?6.5:0),my)}
+        const win=r.medal==='gold'||r.place==='3rd place';
+        doc.setFont('helvetica',win?'bold':'normal');doc.setFontSize(13);
+        if(r.team){let t=tname(r.team);while(t.length>1&&doc.getTextWidth(t)>pairMax)t=t.slice(0,-1);doc.setTextColor(win?40:90,win?25:70,win?18:60);doc.text(t,cPair,my)}
+        else{doc.setTextColor(150);doc.text('To be decided',cPair,my)}
+        doc.setFontSize(13);
+        if(r.sets==='wo'){doc.setFont('helvetica','normal');doc.setTextColor(110);doc.text(win?'Walkover win':'Walkover',R-3,my,{align:'right'})}
+        else if(r.sets)r.sets.slice(0,setCols.length).forEach(([o,p],k)=>{const won=o>p;doc.setFont('helvetica',won?'bold':'normal');doc.setTextColor(won?40:130,won?25:115,won?18:105);doc.text(String(o),setX(k)+setW/2,my,{align:'center'})});
+        else{doc.setFont('helvetica','normal');doc.setTextColor(170);setCols.forEach((s,k)=>doc.text('-',setX(k)+setW/2,my,{align:'center'}))}
+      });
+      y=top+h+3.5});
+    y+=4});
+  const n=doc.getNumberOfPages();for(let i=1;i<=n;i++){doc.setPage(i);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(140);doc.text(`Indo-Swiss Sports Club · ${S.name} · created ${stamp}`,M,288);doc.text(`Page ${i} of ${n}`,W-M,288,{align:'right'})}
+  return doc}
+async function downloadResults(){const msg=$('#resMsg');
+  if(!S.ko){msg.textContent='Create the knockout draw first.';return}
+  if(!window.jspdf){msg.textContent='The PDF maker could not load. Check the internet connection and reload.';return}
+  const open=Object.values(S.matches).filter(m=>m.stage==='ko'&&!isBye(m)&&result(m).status!=='done').length;
+  if(open){confirmBox(`${open} knockout match${open>1?'es are':' is'} not finished yet. Download the results anyway? Places still open show "To be decided".`,'Download anyway',()=>saveResults());return}
+  saveResults()}
+async function saveResults(){const msg=$('#resMsg');
+  const doc=buildResultsPDF(),fname=`${S.name} final results.pdf`.replace(/[\\/:*?"<>|]+/g,'-');msg.textContent='Preparing PDF...';
+  let dl=null;try{if(window.claude&&claude.use)dl=await claude.use('downloads')}catch(e){}
+  if(dl){try{await dl.save({filename:fname,data:doc.output('blob')});msg.textContent='Saved '+fname}catch(e){msg.textContent=e&&e.code==='declined'?'Download cancelled':'The download did not work here. Try the HTML file in your browser.'}return}
+  try{doc.save(fname);msg.textContent='Downloaded '+fname}catch(e){msg.textContent='The download did not work here.'}}
 /* ---------- Player display (#display) ---------- */
 const DISPLAY_URL='https://claude.ai/artifact/1hUM975N9r5hjXxuCG2gnP#display';
 const isTV=()=>location.hash.startsWith('#display');
@@ -1079,7 +1228,7 @@ function tickClock(){const c=$('#tvClock');if(c)c.textContent=new Date().toLocal
 async function keepAwake(){try{if(!wake&&navigator.wakeLock&&document.visibilityState==='visible'){wake=await navigator.wakeLock.request('screen');wake.addEventListener('release',()=>{wake=null})}}catch(e){}}
 function leaveTV(){clearInterval(tvRotate);clearInterval(tvClock);tvRotate=tvClock=null;$('#tv').hidden=true;document.querySelector('header.band').hidden=false;main.hidden=false;document.body.classList.remove('tvmode')}
 window.addEventListener('hashchange',()=>{if(isTV())renderTV();else{leaveTV();render()}});
-window.addEventListener('storage',e=>{if(e.key!==KEY)return;const fresh=load();if(!fresh||!fresh.teams)return;S=fresh;if(isTV())renderTV();else if(!$('#dlg').open&&!$('#cdlg').open&&tab!=='setup')render()});
+window.addEventListener('storage',e=>{if(e.key!==KEY)return;const fresh=load();if(!fresh||!fresh.teams)return;S=fresh;if(isTV())renderTV();else if(!$('#dlg').open&&!$('#cdlg').open&&tab!=='setup'&&tab!=='settings')render()});
 document.addEventListener('fullscreenchange',()=>{const b=$('#fsBtn');if(b)b.hidden=!!document.fullscreenElement});
 document.addEventListener('visibilitychange',()=>{if(isTV())keepAwake()});
 try{if(location.protocol==='file:')$('.tvlink').href=location.href.split('#')[0]+'#display'}catch(e){}
