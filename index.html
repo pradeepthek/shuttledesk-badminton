@@ -156,6 +156,14 @@ textarea{min-height:240px;resize:vertical;font-variant-numeric:tabular-nums}
 .rulegrid .h{font-size:11.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
 .preview{background:var(--chip);border-radius:8px;padding:10px 12px;font-size:14px}
 .err{color:var(--bad);font-size:13.5px}
+.bkcards{margin-bottom:10px}
+.bkcards .fmt{gap:8px}
+.bkicon{width:36px;height:36px;color:var(--accent);fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.fmt:not(:has(input:checked)) .bkicon{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
+.chips i{font-style:normal;font-size:12px;padding:2px 9px;border-radius:999px;background:var(--chip);color:var(--ink)}
+.chips i.no{background:var(--bad-bg);color:var(--bad)}
+
 @supports (grid-template-rows:subgrid){
   .groups>section.card{display:grid;grid-template-rows:subgrid;grid-row:span 4;row-gap:0;align-content:start}
   .groups>section.card>*{align-self:start}
@@ -547,7 +555,7 @@ function render(){
   $('#rulesLine').innerHTML=`<span><b>Groups</b> ${ruleText(S.rules.group)}</span><span><b>Knockout</b> ${ruleText(S.rules.ko)}</span><span>${S.teams.length} pairs · ${S.groups.length} group${S.groups.length>1?'s':''}</span>`;
   const p=groupProgress();$('#prog').style.width=(p.total?p.done/p.total*100:0)+'%';
   document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
-  {const tl=$('.tvlink'),base=location.protocol==='file:'?location.href.split('#')[0]:'https://claude.ai/artifact/1hUM975N9r5hjXxuCG2gnP';
+  {const tl=$('.tvlink'),framed=(()=>{try{return window.self!==window.top}catch(e){return true}})(),base=framed?'https://claude.ai/artifact/1hUM975N9r5hjXxuCG2gnP':location.href.split('#')[0];
    const h=tab==='groups'?'#display-groups':tab==='knockout'?'#display-ko':'#display';tl.href=base+h;
    tl.textContent=tab==='groups'?'Open group display ↗':tab==='knockout'?'Open knockout display ↗':'Open player display ↗'}
   main.innerHTML=tab==='groups'?viewGroups():tab==='knockout'?viewKO():tab==='stats'?viewStats():viewSetup();
@@ -679,7 +687,7 @@ function viewStep1(){
       <small class="muted">Many teams? Try 15 points (cap 21) in the groups and 21 in the knockout.</small></div>
   </div>
   <div class="err" id="sErr"></div>
-  <div class="row"><button class="btn primary" data-act="next">Next: add pairs</button>${S.example?'':'<button class="btn" data-act="rules">Save scoring changes only</button>'}</div>
+  <div class="row spread"><div class="row"><button class="btn primary" data-act="next">Next: add pairs</button>${S.example?'':'<button class="btn" data-act="rules">Save scoring changes only</button>'}</div><button class="btn danger" type="button" data-act="clearSetup">Clear setup</button></div>
   </section>`;
 }
 function viewStep2(){
@@ -693,7 +701,7 @@ function viewStep2(){
     <div style="display:flex;flex-direction:column;gap:10px"><label class="f">How to split<select id="fillMode"><option value="seeded">Seeded, spread evenly</option><option value="random">Random draw</option></select></label>
     <span class="muted" style="font-size:13.5px">This replaces what is in the group boxes above.</span><div><button class="btn" data-act="distribute" type="button">Split into ${d.numGroups} group${d.numGroups>1?'s':''}</button></div></div></div></details>
   <div class="preview" id="preview" style="margin-top:16px"></div><div class="err" id="sErr" style="margin-top:8px"></div>
-  <div class="row" style="margin-top:12px"><button class="btn primary" data-act="create">Create tournament</button></div></section>`;
+  <div class="row spread" style="margin-top:12px"><button class="btn primary" data-act="create">Create tournament</button><button class="btn danger" type="button" data-act="clearSetup">Clear setup</button></div></section>`;
 }
 let bkMode='full';
 function setupOnly(st){const c=JSON.parse(JSON.stringify(st));
@@ -708,9 +716,9 @@ function prettyJSON(o){const keys=Object.keys(o);
 function backupText(){return prettyJSON(bkMode==='setup'?setupOnly(S):S)}
 function viewBackup(){return`<section class="card"><h2>Backup</h2><p class="muted" style="margin:6px 0 12px">Results are saved in this browser on this device. Copy the backup text and keep it somewhere safe, or paste one here to restore it.</p>
   <div class="form"><div class="f"><span style="font-weight:600;font-size:13.5px">Make a backup</span>
-  <div class="seg bkpick" role="radiogroup" aria-label="Backup contents">
-    <label><input type="radio" name="bk" value="full" ${bkMode==='full'?'checked':''}><span><b>Everything</b><small class="muted">Setup and all results</small></span></label>
-    <label><input type="radio" name="bk" value="setup" ${bkMode==='setup'?'checked':''}><span><b>Setup only</b><small class="muted">Name, rules, pairs, groups and fixtures. No scores.</small></span></label></div>
+  <div class="fmtpick bkcards" role="radiogroup" aria-label="Backup contents">
+    <label class="fmt"><input type="radio" name="bk" value="full" ${bkMode==='full'?'checked':''}><span class="tick" aria-hidden="true"></span><svg class="bkicon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 2.5 7.2 12 12l9.5-4.8L12 2.5z"/><path d="M2.5 12 12 16.8 21.5 12"/><path d="M2.5 16.8 12 21.5l9.5-4.7"/></svg><span class="fmt-t">Everything</span><span class="muted">The whole tournament with all results. Use it to keep a safe copy or move to another computer.</span><span class="chips"><i>Pairs &amp; groups</i><i>Scores</i><i>Knockout</i><i>Court times</i></span></label>
+    <label class="fmt"><input type="radio" name="bk" value="setup" ${bkMode==='setup'?'checked':''}><span class="tick" aria-hidden="true"></span><svg class="bkicon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="14" height="17.5" rx="2"/><rect x="9" y="2.5" width="6" height="3.5" rx="1"/><path d="M8.5 11h7M8.5 14.5h7M8.5 18h4"/></svg><span class="fmt-t">Setup only</span><span class="muted">A clean tournament, ready to play. Use it to hand the setup to a colleague.</span><span class="chips"><i>Pairs &amp; groups</i><i>Rules</i><i>Fixtures</i><i class="no">No scores</i></span></label></div>
   <textarea id="bOut" readonly spellcheck="false" style="min-height:260px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow-x:auto">${esc(backupText())}</textarea><span><button class="btn" data-act="copy" type="button">Copy backup</button> <span id="copyMsg" class="muted"></span></span></div>
   <label class="f">Restore from backup<textarea id="bIn" spellcheck="false" style="min-height:260px;font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace;white-space:pre;overflow-x:auto" placeholder="Paste backup text here"></textarea><span><button class="btn" data-act="restore" type="button">Restore</button> <span id="restMsg" class="err"></span></span></label></div></section>`}
 function readRules(){
@@ -801,6 +809,8 @@ main.addEventListener('click',e=>{
   const a=e.target.closest('[data-act]');if(!a)return;const act=a.dataset.act;
   if(act==='goSetup'){setupStep=1;setTab('setup')}
   if(act==='goKO')setTab('knockout');
+  if(act==='clearSetup'){confirmBox('Clear the setup form? The name, pairs and choices go back to the defaults. Your current tournament and its results stay as they are until you click Create tournament.','Clear setup',()=>{
+    draft={name:'',format:'semis',numGroups:2,advance:2,tierCount:3,third:{},rules:{group:{pts:21,cap:30,bo:1},ko:{pts:21,cap:30,bo:3}},groups:['','']};setupStep=1;render()});return}
   if(act==='startPick'){const sel=$('#pick'+a.dataset.c);const m=sel&&S.matches[sel.value];if(!m)return;const err=startOnCourt(m,+a.dataset.c);if(err){confirmBox(err,'OK',()=>{});return}render();return}
   if(act==='startNext'){const m=S.matches[a.dataset.mid];if(!m)return;const err=startOnCourt(m,+a.dataset.c);if(err){confirmBox(err,'OK',()=>{});return}render();return}
   if(act==='third'){const k=a.dataset.k,on=a.checked;const b=S.ko?.brackets.find(b=>b.key===k);const tm=b&&b.third&&S.matches[b.third];const has=!on&&tm&&(tm.games.length||tm.wo!=null);
@@ -842,7 +852,7 @@ main.addEventListener('click',e=>{
   
 if(act==='rules'){const err=readStep1();if(err){$('#sErr').textContent=err;return}S.rules=draft.rules;Object.keys(draft.third||{}).forEach(k=>{if(thirdOn(k)!==!!draft.third[k])setThird(k,!!draft.third[k])});if(draft.name)S.name=draft.name;save();render();$('#sErr').textContent=''}
   if(act==='copy'){const t=$('#bOut');const ok=()=>$('#copyMsg').textContent=bkMode==='setup'?'Copied (setup only)':'Copied (everything)';navigator.clipboard?.writeText(t.value).then(ok).catch(()=>{t.focus();t.select();$('#copyMsg').textContent='Selected. Press Ctrl+C or ⌘C to copy.'})||(t.select())}
-  if(act==='restore'){try{const d=JSON.parse($('#bIn').value);if(!d.teams||!d.groups||!d.matches||!d.rules)throw 0;confirmBox('Restoring replaces the current tournament with the backup.','Restore',()=>{S=d;save();setTab('groups')})}catch(e){$('#restMsg').textContent='That text is not a valid backup.'}}
+  if(act==='restore'){try{const d=JSON.parse($('#bIn').value);if(!d.teams||!d.groups||!d.matches||!d.rules)throw 0;confirmBox('Restoring replaces the current tournament with the backup.','Restore',()=>{S=d;draft=null;setupStep=1;save();setTab('groups')})}catch(e){$('#restMsg').textContent='That text is not a valid backup.'}}
 });
 /* ---------- Printable score sheets (#sheets) ---------- */
 let sheetGroup='all';
